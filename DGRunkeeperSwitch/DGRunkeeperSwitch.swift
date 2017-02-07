@@ -90,6 +90,8 @@ open class DGRunkeeperSwitch: UIControl {
     open var animationInitialSpringVelocity: CGFloat = 0.0
     
     // MARK: - Private vars
+    fileprivate var accessibilityLabelForSelected = ""
+    fileprivate var accessibilityLabelForNotSelected = ""
     
     fileprivate var titleLabelsContentView = UIView()
     fileprivate var titleLabels = [UILabel]()
@@ -229,6 +231,8 @@ open class DGRunkeeperSwitch: UIControl {
             layoutSubviews()
             sendActions(for: .valueChanged)
         }
+        
+        makeAccessible()
     }
     
     // MARK: - Layout
@@ -258,6 +262,28 @@ open class DGRunkeeperSwitch: UIControl {
             label.frame = frame
             selectedLabel.frame = frame
         }
+    }
+    
+    // MARK: - Accessibility
+    public func makeAccessible(labelForSelected: String? = nil, labelForNotSelected: String? = nil) {
+        
+        if let selected = labelForSelected {
+            self.accessibilityLabelForSelected = selected
+        }
+        
+        if let notSelected = labelForNotSelected {
+            self.accessibilityLabelForNotSelected = notSelected
+        }
+        
+        for title in self.titleLabels {
+            guard title.text != nil else { continue }
+            
+            var speech = title.text! + "."
+            speech += (self.selectedTitleLabels.contains(title) ? self.accessibilityLabelForSelected : self.accessibilityLabelForNotSelected)
+            
+            
+        }
+        
     }
     
 }
