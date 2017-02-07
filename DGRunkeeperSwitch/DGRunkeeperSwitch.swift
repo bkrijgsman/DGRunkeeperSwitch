@@ -275,13 +275,18 @@ open class DGRunkeeperSwitch: UIControl {
             self.accessibilityLabelForNotSelected = notSelected
         }
         
-        for title in self.titleLabels {
-            guard title.text != nil else { continue }
+        for (index, label) in self.titleLabels.enumerated() {
+            guard label.text != nil else { continue }
             
-            var speech = title.text! + "."
-                speech += (self.selectedTitleLabels.contains(title) ? self.accessibilityLabelForSelected : self.accessibilityLabelForNotSelected)
+            var speech = label.text!
+            speech += (index == selectedIndex ? self.accessibilityLabelForSelected : self.accessibilityLabelForNotSelected)
             
-            title.accessibilityLabel = speech
+            label.accessibilityLabel = speech
+            
+        }
+        
+        for label in self.selectedTitleLabels {
+            label.isAccessibilityElement = false
         }
         
     }
