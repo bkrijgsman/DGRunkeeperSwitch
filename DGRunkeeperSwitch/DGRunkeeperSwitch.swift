@@ -279,9 +279,9 @@ open class DGRunkeeperSwitch: UIControl {
             guard title.text != nil else { continue }
             
             var speech = title.text! + "."
-            speech += (self.selectedTitleLabels.contains(title) ? self.accessibilityLabelForSelected : self.accessibilityLabelForNotSelected)
+                speech += (self.selectedTitleLabels.contains(title) ? self.accessibilityLabelForSelected : self.accessibilityLabelForNotSelected)
             
-            
+            title.accessibilityLabel = speech
         }
         
     }
