@@ -11,7 +11,7 @@ import UIKit
 // MARK: - DGRunkeeperSwitchRoundedLayer
 
 open class DGRunkeeperSwitchRoundedLayer: CALayer {
-
+    
     override open var bounds: CGRect {
         didSet { cornerRadius = bounds.height / 2.0 }
     }
@@ -108,6 +108,10 @@ open class DGRunkeeperSwitch: UIControl {
     
     fileprivate var initialSelectedBackgroundViewFrame: CGRect?
     
+    // MARK: - KVO properties
+    
+    private var selectedBackgroundViewFrameObserver: NSKeyValueObservation?
+    
     // MARK: - Constructors
     
     public init(titles: [String]) {
@@ -152,7 +156,7 @@ open class DGRunkeeperSwitch: UIControl {
         selectedBackgroundColor = .white
         titleColor = .white
         selectedTitleColor = .black
-      
+        
         // Gestures
         tapGesture = UITapGestureRecognizer(target: self, action: #selector(tapped))
         addGestureRecognizer(tapGesture)
@@ -161,7 +165,22 @@ open class DGRunkeeperSwitch: UIControl {
         panGesture.delegate = self
         addGestureRecognizer(panGesture)
         
-        addObserver(self, forKeyPath: "selectedBackgroundView.frame", options: .new, context: nil)
+        // Observers
+        
+        selectedBackgroundViewFrameObserver = selectedBackgroundView.observe(\.frame, options: NSKeyValueObservingOptions.new) { [weak self] (object, changes) in
+            if let newValue = changes.newValue {
+                self?.titleMaskView.frame = newValue
+            }
+        }
+        
+    }
+    
+    deinit {
+        if #available(iOS 11.0, *) {
+            
+        } else {
+            selectedBackgroundViewFrameObserver?.invalidate()
+        }
     }
     
     override open func awakeFromNib() {
@@ -170,33 +189,19 @@ open class DGRunkeeperSwitch: UIControl {
         self.titleFont = UIFont(name: self.titleFontFamily, size: self.titleFontSize)
     }
     
-    // MARK: - Destructor
-    
-    deinit {
-        removeObserver(self, forKeyPath: "selectedBackgroundView.frame")
-    }
-    
-    // MARK: - Observer
-    
-    override open func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        if keyPath == "selectedBackgroundView.frame" {
-            titleMaskView.frame = selectedBackgroundView.frame
-        }
-    }
-    
     // MARK: -
     
     override open class var layerClass : AnyClass {
         return DGRunkeeperSwitchRoundedLayer.self
     }
     
-    func tapped(_ gesture: UITapGestureRecognizer!) {
+    @objc func tapped(_ gesture: UITapGestureRecognizer!) {
         let location = gesture.location(in: self)
         let index = Int(location.x / (bounds.width / CGFloat(titleLabels.count)))
         setSelectedIndex(index, animated: true)
     }
     
-    func pan(_ gesture: UIPanGestureRecognizer!) {
+    @objc func pan(_ gesture: UIPanGestureRecognizer!) {
         if gesture.state == .began {
             initialSelectedBackgroundViewFrame = selectedBackgroundView.frame
         } else if gesture.state == .changed {
@@ -226,7 +231,7 @@ open class DGRunkeeperSwitch: UIControl {
             }
             UIView.animate(withDuration: animationDuration, delay: 0.0, usingSpringWithDamping: animationSpringDamping, initialSpringVelocity: animationInitialSpringVelocity, options: [UIViewAnimationOptions.beginFromCurrentState, UIViewAnimationOptions.curveEaseOut], animations: { () -> Void in
                 self.layoutSubviews()
-                }, completion: nil)
+            }, completion: nil)
         } else {
             layoutSubviews()
             sendActions(for: .valueChanged)
@@ -253,7 +258,7 @@ open class DGRunkeeperSwitch: UIControl {
             
             var size = label.sizeThatFits(CGSize(width: titleLabelMaxWidth, height: titleLabelMaxHeight))
             size.width = min(size.width, titleLabelMaxWidth)
-          
+            
             let x = floor((bounds.width / CGFloat(titleLabels.count)) * CGFloat(index) + (bounds.width / CGFloat(titleLabels.count) - size.width) / 2.0)
             let y = floor((bounds.height - size.height) / 2.0)
             let origin = CGPoint(x: x, y: y)
@@ -305,3 +310,4 @@ extension DGRunkeeperSwitch: UIGestureRecognizerDelegate {
     }
     
 }
+
